@@ -1,0 +1,214 @@
+openapi: 3.0.1
+info:
+  description: "API to browse theatres currently running a selected movie in a specific\
+    \ town, including show timings by a chosen date."
+  title: Theatre Showtimes API
+  version: 1.0.0
+servers:
+- url: https://api.example.com
+paths:
+  /theatres:
+    get:
+      parameters:
+      - description: The ID of the movie.
+        explode: true
+        in: query
+        name: movie_id
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: The name of the town.
+        explode: true
+        in: query
+        name: town
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: The chosen date (YYYY-MM-DD). Defaults to the current date if
+          not provided.
+        explode: true
+        in: query
+        name: date
+        required: false
+        schema:
+          format: date
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/_theatres_get_200_response_inner'
+                type: array
+          description: A list of theatres and show timings.
+        "400":
+          description: "Bad request, invalid parameters."
+        "404":
+          description: No theatres found for the selected movie in the specified town
+            and date.
+        "500":
+          description: Internal server error.
+      summary: "Browse theatres running the selected movie in the specified town,\
+        \ including show timings by a chosen date."
+      x-accepts: application/json
+  /bookings:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/_bookings_post_request'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_bookings_post_201_response'
+          description: Booking created successfully.
+        "400":
+          description: "Bad request, invalid input parameters."
+        "404":
+          description: "Theatre, movie, or seats not found."
+        "500":
+          description: Internal server error.
+      summary: "Book movie tickets by selecting a theatre, timing, and preferred seats\
+        \ for the day."
+      x-content-type: application/json
+      x-accepts: application/json
+components:
+  schemas:
+    BookingRequest:
+      properties:
+        movie_id:
+          type: string
+        theatre_id:
+          type: string
+        show_time:
+          format: time
+          type: string
+        date:
+          format: date
+          type: string
+        seats:
+          items:
+            type: string
+          type: array
+      required:
+      - date
+      - movie_id
+      - seats
+      - show_time
+      - theatre_id
+      type: object
+    BookingResponse:
+      properties:
+        booking_id:
+          type: string
+        movie_id:
+          type: string
+        theatre_id:
+          type: string
+        show_time:
+          format: time
+          type: string
+        date:
+          format: date
+          type: string
+        seats:
+          items:
+            type: string
+          type: array
+      type: object
+    Theatre:
+      properties:
+        theatre_id:
+          type: string
+        theatre_name:
+          type: string
+        show_times:
+          items:
+            type: string
+          type: array
+      type: object
+    _theatres_get_200_response_inner:
+      example:
+        theatre_name: theatre_name
+        show_times:
+        - show_times
+        - show_times
+        theatre_id: theatre_id
+      properties:
+        theatre_id:
+          description: The ID of the theatre.
+          type: string
+        theatre_name:
+          description: The name of the theatre.
+          type: string
+        show_times:
+          items:
+            description: The show timings for the selected date.
+            type: string
+          type: array
+      type: object
+    _bookings_post_request:
+      properties:
+        movie_id:
+          description: The ID of the movie.
+          type: string
+        theatre_id:
+          description: The ID of the theatre.
+          type: string
+        show_time:
+          description: The selected show time ( HH:MM).
+          format: time
+          type: string
+        date:
+          description: The chosen date (YYYY-MM-DD).
+          format: date
+          type: string
+        seats:
+          description: An array of preferred seats.
+          items:
+            type: string
+          type: array
+      required:
+      - date
+      - movie_id
+      - seats
+      - show_time
+      - theatre_id
+      type: object
+    _bookings_post_201_response:
+      example:
+        booking_id: booking_id
+        date: 2000-01-23
+        show_time: show_time
+        movie_id: movie_id
+        theatre_id: theatre_id
+        seats:
+        - seats
+        - seats
+      properties:
+        booking_id:
+          description: The ID of the booking.
+          type: string
+        movie_id:
+          type: string
+        theatre_id:
+          type: string
+        show_time:
+          format: time
+          type: string
+        date:
+          format: date
+          type: string
+        seats:
+          items:
+            type: string
+          type: array
+      type: object
